@@ -4,10 +4,10 @@
  */
 
 const CONFIG = {
-    // API Configuration
-    API_URL: 'http://127.0.0.1:5000/api',
-    API_BASE: 'http://127.0.0.1:5000',
     
+    API_URL: 'https://habit-tracker-api-66ad.onrender.com/api',
+    API_BASE: 'https://habit-tracker-api-66ad.onrender.com',
+};
     // Request timeout in milliseconds
     REQUEST_TIMEOUT: 10000,
     
