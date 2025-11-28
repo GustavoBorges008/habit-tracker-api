@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema completo de rastreamento de hábitos com análise de streaks e estatísticas">
+    <meta name="author" content="Gustavo Borges">
+    <title>Habit Tracker - Transforme seus hábitos em conquistas</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-chart-line"></i>
+                <span>Habit Tracker</span>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#habits" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Hábitos</span>
+                </a>
+                <a href="#analytics" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Análise</span>
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="api-status" id="apiStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Verificando...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Header Section -->
+            <header class="page-header">
+                <div class="header-content">
+                    <h1 class="page-title">Bem-vindo de volta! 👋</h1>
+                    <p class="page-subtitle">Acompanhe seu progresso e construa hábitos duradouros</p>
+                </div>
+                <button class="btn btn-primary btn-lg" onclick="habitModal.open()">
+                    <i class="fas fa-plus"></i>
+                    <span>Novo Hábito</span>
+                </button>
+            </header>
+
+            <!-- Stats Overview -->
+            <section class="stats-section" id="statsSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-list-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total de Hábitos</p>
+                            <h2 class="stat-value" id="totalHabits">0</h2>
+                            <span class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                Ativos
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Completados Hoje</p>
+                            <h2 class="stat-value" id="completedToday">0</h2>
+                            <span class="stat-trend" id="completionTrend">
+                                0% concluído
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Streak Médio</p>
+                            <h2 class="stat-value" id="avgStreak">0</h2>
+                            <span class="stat-trend">
+                                dias consecutivos
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Completado</p>
+                            <h2 class="stat-value" id="totalCompletions">0</h2>
+                            <span class="stat-trend">
+                                registros
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <button class="action-btn" onclick="app.refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Atualizar</span>
+                </button>
+                <button class="action-btn" onclick="app.showAnalytics()">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Análise Completa</span>
+                </button>
+                <button class="action-btn" onclick="app.exportData()">
+                    <i class="fas fa-download"></i>
+                    <span>Exportar Dados</span>
+                </button>
+            </section>
+
+            <!-- Habits Section -->
+            <section class="habits-section" id="habitsSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Seus Hábitos de Hoje
+                    </h2>
+                    <div class="section-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="completed">Completos</button>
+                        <button class="filter-btn" data-filter="pending">Pendentes</button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <p>Carregando seus hábitos...</p>
+                </div>
+
+                <!-- Habits Grid -->
+                <div class="habits-grid" id="habitsGrid"></div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>Nenhum hábito encontrado</h3>
+                    <p>Comece sua jornada criando seu primeiro hábito!</p>
+                    <button class="btn btn-primary" onclick="habitModal.open()">
+                        <i class="fas fa-plus"></i>
+                        Criar Primeiro Hábito
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Habit Modal -->
+    <div class="modal" id="habitModal">
+        <div class="modal-overlay" onclick="habitModal.close()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">Criar Novo Hábito</h2>
+                <button class="modal-close" onclick="habitModal.close()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form class="modal-body" id="habitForm">
+                <div class="form-grid">
+                    <div class="form-group col-span-2">
+                        <label for="habitName" class="form-label">
+                            <i class="fas fa-tag"></i>
+                            Nome do Hábito
+                        </label>
+                        <input 
+                            type="text" 
+                            id="habitName" 
+                            class="form-input" 
+                            placeholder="Ex: Exercícios matinais"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group col-span-2">
+                        <label for="habitDescription" class="form-label">
+                            <i class="fas fa-align-left"></i>
+                            Descrição (Opcional)
+                        </label>
+                        <textarea 
+                            id="habitDescription" 
+                            class="form-input" 
+                            rows="3"
+                            placeholder="Descreva seu hábito e seus objetivos..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitCategory" class="form-label">
+                            <i class="fas fa-folder"></i>
+                            Categoria
+                        </label>
+                        <select id="habitCategory" class="form-input">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitDifficulty" class="form-label">
+                            <i class="fas fa-signal"></i>
+                            Dificuldade
+                        </label>
+                        <select id="habitDifficulty" class="form-input">
+                            <option value="easy">Fácil</option>
+                            <option value="medium" selected>Médio</option>
+                            <option value="hard">Difícil</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitGoal" class="form-label">
+                            <i class="fas fa-bullseye"></i>
+                            Meta Semanal
+                        </label>
+                        <input 
+                            type="number" 
+                            id="habitGoal" 
+                            class="form-input" 
+                            value="7" 
+                            min="1" 
+                            max="7"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitIcon" class="form-label">
+                            <i class="fas fa-icons"></i>
+                            Ícone/Emoji
+                        </label>
+                        <input 
+                            type="text" 
+                            id="habitIcon" 
+                            class="form-input" 
+                            placeholder="✓" 
+                            maxlength="2"
+                        >
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="habitModal.close()">
+                    Cancelar
+                </button>
+                <button type="submit" form="habitForm" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Salvar Hábito
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Feito com ❤️ por Gustavo Borges</p>
+            <div class="footer-links">
+                <a href="https://github.com/GustavoBorges008/habit-tracker-api" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/app.js"></script>
+</body>
+  </html>
