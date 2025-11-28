@@ -1,18 +1,7 @@
 """
 HABIT TRACKER - Backend Completo
 Sistema avançado de rastreamento de hábitos com Flask
-
-Estrutura do projeto:
-habit-tracker/
-├── app.py (este arquivo)
-├── database.db (será criado automaticamente)
-└── requirements.txt
-
-Instalar dependências:
-pip install flask flask-cors python-dateutil
-
-Executar:
-python app.py
+Versão de Produção
 """
 
 from flask import Flask, request, jsonify
@@ -24,7 +13,15 @@ import json
 import os
 
 app = Flask(__name__)
-CORS(app)
+
+# Configuração CORS para produção
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],  # Em produção, especifique o domínio do frontend
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 DATABASE = 'database.db'
 
@@ -531,6 +528,7 @@ def home():
     return jsonify({
         'message': 'Habit Tracker API',
         'version': '1.0',
+        'status': 'online',
         'endpoints': {
             'categories': '/api/categories',
             'habits': '/api/habits',
@@ -538,6 +536,13 @@ def home():
             'stats': '/api/stats/overview'
         }
     })
+
+# ==================== HEALTH CHECK ====================
+
+@app.route('/health')
+def health():
+    """Health check endpoint para Render"""
+    return jsonify({'status': 'healthy'}), 200
 
 # ==================== INICIALIZAÇÃO ====================
 
@@ -547,8 +552,10 @@ if __name__ == '__main__':
         init_db()
         print('✅ Banco de dados criado com sucesso!')
     
-    print('\n🚀 Habit Tracker API rodando!')
-    print('📍 Acesse: http://127.0.0.1:5000')
-    print('📚 Documentação: http://127.0.0.1:5000/\n')
+    port = int(os.environ.get('PORT', 5000))
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print('\n🚀 Habit Tracker API rodando!')
+    print(f'📍 Porta: {port}')
+    print(f'🌍 Ambiente: {"Produção" if os.environ.get("PORT") else "Desenvolvimento"}\n')
+    
+    app.run(host='0.0.0.0', port=port, debug=False)
